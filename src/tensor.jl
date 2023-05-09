@@ -1,20 +1,8 @@
 using Random, LinearAlgebra, TensorToolbox, Combinatorics, TensorOperations
 
-function tensorDiagonal(L::Vector, d::Int)
-    r = length(L)
-    D = zeros(tuple(repeat([r], d)...))
-    for i = 1:r 
-        D[tuple(repeat([i], d)...)...] = L[i]
-    end;
-    return D
-end;
-
-function makeRankedTensor(L::Vector, A::Matrix, d::Int)
-    T = tensorDiagonal(L, d)
-    for i=1:d 
-        T = ttm(T, A, i)
-    end;
-    return T
+function makeRankedTensor(L::Vector, A::Array, d::Int)
+    A = kronMat(A, d)
+    return reshape(sum(kronMat(A, d) .* L', dims=2), tuple(repeat([n], d)...))
 end;
 
 function randomTensor(n::Int, d::Int; real::Bool=false)
@@ -33,12 +21,6 @@ function randomTensor(n::Int, d::Int; real::Bool=false)
     return T/factorial(d)
 end;
 
-function complexGaussian(m, n)
-    A = randn(m, n)
-    B = randn(m, n)
-    return A + im*B
-end;
-
 function randomRankedTensor(n, d, r; real=false)
     if !real
         A = complexGaussian(n, r)
@@ -46,11 +28,27 @@ function randomRankedTensor(n, d, r; real=false)
         A = randn(n, r)
     end;
     L = ones(r)
-    return makeRankedTensor(L, A, d), A
+    A_ = copy(A)
+    A1 = A_[1, :]
+    L_ = zeros(eltype(A_), r)
+    for i=1:r
+        A_[:, i] ./= A1[i]
+        L_[i] = A1[i]^d
+    end;
+    return makeRankedTensor(L, A, d), A_, L_
 end;
 
 function contract(T::Array, V::Array)
     d1 = length(size(T))
     d2 = length(size(V))
     return ncon((T, V), (vcat(collect(1:d2), -collect(1:d1-d2)), collect(1:d2)))
+end;
+
+function kronMat(A::Matrix, d)
+    n, r = size(A)
+    B = zeros(eltype(A), (n^d, r))
+    for i=1:r 
+        B[:, i] = kron(ntuple(x->A[:, i], d)...)
+    end;
+    return B
 end;

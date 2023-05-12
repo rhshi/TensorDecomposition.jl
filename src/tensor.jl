@@ -1,8 +1,8 @@
 using Random, LinearAlgebra, TensorToolbox, Combinatorics, TensorOperations
 
 function makeRankedTensor(L::Vector, A::Array, d::Int)
-    A = kronMat(A, d)
-    return reshape(sum(kronMat(A, d) .* L', dims=2), tuple(repeat([n], d)...))
+    A_ = kronMat(A, d)
+    return reshape(sum(A_ .* L', dims=2), tuple(repeat([n], d)...))
 end;
 
 function randomTensor(n::Int, d::Int; real::Bool=false)
@@ -45,10 +45,14 @@ function contract(T::Array, V::Array)
 end;
 
 function kronMat(A::Matrix, d)
-    n, r = size(A)
-    B = zeros(eltype(A), (n^d, r))
-    for i=1:r 
-        B[:, i] = kron(ntuple(x->A[:, i], d)...)
+    if d == 1
+        B = A
+    else
+        n, r = size(A)
+        B = zeros(eltype(A), (n^d, r))
+        for i=1:r 
+            B[:, i] = kron(ntuple(x->A[:, i], d)...)
+        end;
     end;
     return B
 end;

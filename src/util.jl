@@ -1,4 +1,4 @@
-using Random, LinearAlgebra
+export dehomogenize!, dehomogenize, normcol!, normcol, complexGaussian
 
 function dehomogenize!(A)
     for col in eachcol(A)

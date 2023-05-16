@@ -1,6 +1,7 @@
-using Random, LinearAlgebra, TensorToolbox, Combinatorics, TensorOperations
+export makeRankedTensor, randomRankedTensor, randomTensor, contract
 
 function makeRankedTensor(L::Vector, A::Array, d::Int)
+    n, _ = size(A)
     A_ = kronMat(A, d)
     return reshape(sum(A_ .* L', dims=2), tuple(repeat([n], d)...))
 end;

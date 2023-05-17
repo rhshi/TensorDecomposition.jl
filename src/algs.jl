@@ -1,4 +1,4 @@
-export jennrich
+export jennrich, jennrich2
 
 function jennrich(T::Array; tol=1e-10)
     Tsize = size(T)
@@ -36,6 +36,47 @@ function jennrich(T::Array; tol=1e-10)
     Ahat = dehomogenize!(Ahat)
 
     # obtain L and deflate
+    low = Int(floor(d/2))
+    high = Int(ceil(d/2))
+    Tflat = reshape(T, (n^low, n^high))
+    Alow = kronMat(Ahat, low)
+    Ahigh = kronMat(Ahat, high)
+
+    Lhat = diag(pinv(Alow)*Tflat*pinv(transpose(Ahigh)))
+
+    return Ahat, Lhat
+end;
+
+function jennrich2(T; tol=1e-10)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+
+    low = Int(floor((d-1)/2))
+    high = Int(ceil((d-1)/2))
+
+    e1 = e(1, n)
+    T1 = contract(T, e1)
+    T1 = reshape(T1, (n^low, n^high))
+    r = rank(T1)
+
+    T1inv = pinv(T1)
+
+    Ahat = zeros(eltype(T), n, r)
+    Ahat[1, :] = ones(r)
+
+    for j=2:n
+        ej = e(j, n)
+        Tj = contract(T, ej)
+        Tj = reshape(Tj, (n^low, n^high))
+        wj_, Vj = eigen(Tj*T1inv)
+        wj = wj_[abs.(wj_).>tol];
+        Vj = Vj[:, abs.(wj_).>tol];
+        argsort = sortperm(Vj[1, :], by=x -> (real(x), imag(x)), rev=true);
+        Ahat[j, :] = wj[argsort]
+    end
+
+
     low = Int(floor(d/2))
     high = Int(ceil(d/2))
     Tflat = reshape(T, (n^low, n^high))

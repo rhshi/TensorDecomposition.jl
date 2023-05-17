@@ -1,3 +1,4 @@
 /Manifest.toml
-/notebooks/testing.pynb
-/notebooks/.ipynb_checkpoints
+notebooks/testing.pynb
+notebooks/.ipynb_checkpoints
+notebooks/testing.ipynb

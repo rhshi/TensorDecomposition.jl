@@ -1,4 +1,4 @@
-export dehomogenize!, dehomogenize, normcol!, normcol, complexGaussian
+export dehomogenize, normcol
 
 function dehomogenize!(A)
     for col in eachcol(A)
@@ -20,4 +20,10 @@ function complexGaussian(m, n)
     A = randn(m, n)
     B = randn(m, n)
     return A + im*B
+end;
+
+function e(j, n)
+    e = zeros(n)
+    e[j] = 1
+    return e
 end;

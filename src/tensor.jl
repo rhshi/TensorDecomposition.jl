@@ -57,3 +57,20 @@ function kronMat(A::Matrix, d)
     end;
     return B
 end;
+
+function cat(T, k)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+
+    low = k 
+    high = d-k 
+
+    row_inds = collect(with_replacement_combinations(1:n, low))
+    row_inds = map(x->from_multiindex(x, n), row_inds)
+
+    col_inds = collect(with_replacement_combinations(1:n, high))
+    col_inds = map(x->from_multiindex(x, n), col_inds)
+
+    return (reshape(T, (n^low, n^high)))[row_inds, col_inds]
+end;

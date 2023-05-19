@@ -1,4 +1,4 @@
-export makeRankedTensor, randomRankedTensor, randomTensor, contract
+export makeRankedTensor, randomRankedTensor, randomTensor, contract, catMat
 
 function makeRankedTensor(L::Vector, A::Array, d::Int)
     n, _ = size(A)
@@ -45,20 +45,7 @@ function contract(T::Array, V::Array)
     return ncon((T, V), (vcat(collect(1:d2), -collect(1:d1-d2)), collect(1:d2)))
 end;
 
-function kronMat(A::Matrix, d)
-    if d == 1
-        B = A
-    else
-        n, r = size(A)
-        B = zeros(eltype(A), (n^d, r))
-        for i=1:r 
-            B[:, i] = kron(ntuple(x->A[:, i], d)...)
-        end;
-    end;
-    return B
-end;
-
-function cat(T, k)
+function catMat(T, k)
     Tsize = size(T)
     n = Tsize[1]
     d = length(Tsize)

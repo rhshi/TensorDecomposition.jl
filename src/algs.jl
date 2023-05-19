@@ -1,4 +1,4 @@
-export jennrich, jennrich2
+export jennrich, jennrich2, catalecticant
 
 function jennrich(T::Array; tol=1e-10)
     Tsize = size(T)
@@ -86,4 +86,32 @@ function jennrich2(T; tol=1e-10)
     Lhat = diag(pinv(Alow)*Tflat*pinv(transpose(Ahigh)))
 
     return Ahat, Lhat
+end;
+
+function catalecticant(T)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+
+    delt = Int(floor(d/2));
+    Tcat = catMat(T, delt);
+
+    # homotopy continuation to solve
+    @var x[1:n]
+    Tker = sum(nullspace(Tcat) .* monomials(x, d-delt), dims=1);
+    F = System(vec(Tker));
+    result = solve(F);
+    sols = solutions(result);
+    Ahat = dehomogenize(reduce(hcat,sols))
+
+    # get coefficients
+    Tflat = reshape(T, (n^(delt), n^(d-delt)))
+    Alow = kronMat(Ahat, delt)
+    Ahigh = kronMat(Ahat, d-delt)
+
+    Lhat = diag(pinv(Alow)*Tflat*pinv(transpose(Ahigh)))
+
+    return Ahat, Lhat
+
+
 end;

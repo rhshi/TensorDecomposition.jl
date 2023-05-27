@@ -1,4 +1,4 @@
-export makeRankedTensor, randomRankedTensor, randomTensor, contract, catMat
+export makeRankedTensor, randomRankedTensor, randomTensor, contract, catMat, hankMat
 
 function makeRankedTensor(L::Vector, A::Array, d::Int)
     n, _ = size(A)
@@ -60,4 +60,44 @@ function catMat(T, k)
     col_inds = map(x->from_multiindex(x, n), col_inds)
 
     return (reshape(T, (n^low, n^high)))[row_inds, col_inds]
+end;
+
+function hankMat(T)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+
+    Fdim = binomial(n-1+d, d)
+    Fliftdim = binomial(n-1+2*d, n-1)
+
+    F = zeros(eltype(T), Fdim)
+    for (i, ind) in enumerate(with_replacement_combinations(0:n-1, d))
+        F[i] = T[(ind .+ 1)...]
+    end
+
+    Flift = Array{Union{eltype(F), Variable}}(undef, Fliftdim)
+    for i=1:length(F)
+        Flift[i] = F[i]
+    end
+
+    @var h[Fdim+1:Fliftdim]
+    for i=1:Fliftdim-Fdim
+        Flift[Fdim+i] = h[i]
+    end
+
+    D = Dict()
+    for (i, ind) in enumerate(with_replacement_combinations(0:n-1, 2*d))
+        D[Tuple(x for x in ind)] = i
+    end
+    
+    Thank = Array{Union{eltype(F), Variable}}(undef, Fdim, Fdim)
+    for (i, row_ind) in enumerate(with_replacement_combinations(0:n-1, d))
+        for (j, col_ind) in enumerate(with_replacement_combinations(0:n-1, d))
+            c = Tuple(x for x in sort(vcat(row_ind, col_ind)))
+            Thank[i, j] = Flift[D[c]]
+        end
+    end
+
+    return Thank
+
 end;

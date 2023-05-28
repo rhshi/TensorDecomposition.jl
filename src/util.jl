@@ -57,4 +57,34 @@ function kronMat(A::Matrix, d)
     return B
 end;
 
+function cofactor(A::AbstractMatrix)
+    ax = axes(A)
+    out = similar(A, eltype(A), ax)
+    for col in ax[1]
+        for row in ax[2]
+            out[col, row] = (-1)^(col + row) * det(A[Not(col), Not(row)])
+        end
+    end
+    return out
+end
+
+function inv(A::Matrix{Expression})
+    if length(A) == 1
+        return 1 ./ A 
+    else 
+        return transpose(cofactor(A))/det(A)
+    end
+end;
+
+function multMon(x, j)
+    c = copy(reverse(x))
+    for i=1:length(c)
+        if c[i] == 0
+            c[i] = j
+            break
+        end
+    end;
+    return sort(reverse(c))
+end;
+
 monomials(x, n) = collect((prod(y) for y in with_replacement_combinations(x, n)));

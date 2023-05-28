@@ -75,7 +75,7 @@ function hankMat(T)
         F[i] = T[(ind .+ 1)...]
     end
 
-    Flift = Array{Union{eltype(F), Variable}}(undef, Fliftdim)
+    Flift = Array{Expression}(undef, Fliftdim)
     for i=1:length(F)
         Flift[i] = F[i]
     end
@@ -90,7 +90,7 @@ function hankMat(T)
         D[Tuple(x for x in ind)] = i
     end
     
-    Thank = Array{Union{eltype(F), Variable}}(undef, Fdim, Fdim)
+    Thank = Array{Expression}(undef, Fdim, Fdim)
     for (i, row_ind) in enumerate(with_replacement_combinations(0:n-1, d))
         for (j, col_ind) in enumerate(with_replacement_combinations(0:n-1, d))
             c = Tuple(x for x in sort(vcat(row_ind, col_ind)))

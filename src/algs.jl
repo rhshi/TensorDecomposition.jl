@@ -121,8 +121,8 @@ function hankel(T; tol=1e-10)
     d = length(Tsize)
 
     delt = Int(floor(d/2))
-    rmin = rank(catMat(T, delt));
-    println(@sprintf "Rank of catalecticant: %d", rmin)
+    rmin = LinearAlgebra.rank(catMat(T, delt));
+    println(@sprintf "Rank of catalecticant: %d" rmin)
     println("Using the rank of catalecticant as initial guess.")
 
     for r=rmin:n^d 
@@ -141,16 +141,16 @@ function hankel_r(T, n, d, r; tol=1e-10)
 
     if iseven(d)
         if n > 3
-            if r >= binomial(Int(n-1+d/2), n-1) - n 
+            if r > binomial(Int(n-1+d/2), n-1) - n 
                 println("Outside the regime of the Catalecticant algorithm.")
             end
         else
-            if r >= binomial(Int(n-1+d/2), n-1) - n + 1
+            if r > binomial(Int(n-1+d/2), n-1) - n + 1
                 println("Outside the regime of the Catalecticant algorithm.")
             end
         end
     else 
-        if r >= binomial(Int(n-1+(d-1)/2), n-1)
+        if r > binomial(Int(n-1+(d-1)/2), n-1)
             println("Outside the regime of the Catalecticant algorithm.")
         end
     end

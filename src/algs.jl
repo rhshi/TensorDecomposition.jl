@@ -215,6 +215,7 @@ function hankel_r(T, n, d, r; tol=1e-10)
                 end
             end
         end
+        F = nothing
     end
 
     Ahat = zeros(ComplexF64, n, r)
@@ -233,5 +234,5 @@ function hankel_r(T, n, d, r; tol=1e-10)
 
     Lhat = diag(pinv(Alow)*Tflat*pinv(transpose(Ahigh)))
     
-    return Ahat, Lhat
+    return Ahat, Lhat, F
 end;

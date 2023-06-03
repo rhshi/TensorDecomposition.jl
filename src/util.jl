@@ -68,13 +68,14 @@ function cofactor(A::AbstractMatrix)
     return out
 end
 
-function inv(A::Matrix{Expression})
+function inv_(A::Matrix{Expression})
     if length(A) == 1
         return 1 ./ A 
     else 
         return transpose(cofactor(A))/det(A)
     end
 end;
+Base.inv(A::Matrix{Expression}) = inv_(A)
 
 function multMon(x, j)
     c = copy(reverse(x))
@@ -88,3 +89,5 @@ function multMon(x, j)
 end;
 
 monomials(x, n) = collect((prod(y) for y in with_replacement_combinations(x, n)));
+delta(d) = Int(floor(d/2))
+gamma(d) = Int(floor((d-1)/2))

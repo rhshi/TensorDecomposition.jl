@@ -15,11 +15,11 @@ function jennrich(T::Array; tol=1e-10)
     T1 = contract(T, B);
     T2 = contract(T, C);
 
-    delt = Int(floor((d-1)/2))
+    gam = gamma(d)
 
     # flatten to matrices
-    T1flat = reshape(T1, (n^delt, n^delt));
-    T2flat = reshape(T2, (n^delt, n^delt));
+    T1flat = reshape(T1, (n^gam, n^gam));
+    T2flat = reshape(T2, (n^gam, n^gam));
 
     # obtain the factors
     # T real -> true factors are obtained, possibly up to sign
@@ -30,14 +30,14 @@ function jennrich(T::Array; tol=1e-10)
     Ahat = zeros(eltype(Ahat_), (n, r))
     for i=1:r
         a = Ahat_[:, i]
-        U, s, _ = svd(reshape(a, (n, n^(delt-1))))
+        U, s, _ = svd(reshape(a, (n, n^(gam-1))))
         Ahat[:, i] = U[:, abs.(s).>tol]
     end;
     Ahat = dehomogenize!(Ahat)
 
     # obtain L and deflate
-    low = Int(floor(d/2))
-    high = Int(ceil(d/2))
+    low = delta(d)
+    high = d-low
     Tflat = reshape(T, (n^low, n^high))
     Alow = kronMat(Ahat, low)
     Ahigh = kronMat(Ahat, high)
@@ -52,8 +52,8 @@ function jennrich2(T; tol=1e-10)
     n = Tsize[1]
     d = length(Tsize)
 
-    low = Int(floor((d-1)/2))
-    high = Int(ceil((d-1)/2))
+    low = gamma(d)
+    high = d-1-low
 
     e1 = e(1, n)
     T1 = contract(T, e1)
@@ -77,8 +77,8 @@ function jennrich2(T; tol=1e-10)
     end
 
 
-    low = Int(floor(d/2))
-    high = Int(ceil(d/2))
+    low = delta(d)
+    high = d-low
     Tflat = reshape(T, (n^low, n^high))
     Alow = kronMat(Ahat, low)
     Ahigh = kronMat(Ahat, high)
@@ -93,7 +93,7 @@ function catalecticant(T)
     n = Tsize[1]
     d = length(Tsize)
 
-    delt = Int(floor(d/2));
+    delt = delta(d);
     Tcat = catMat(T, delt);
 
     # homotopy continuation to solve
@@ -120,7 +120,7 @@ function hankel(T; tol=1e-10)
     n = Tsize[1]
     d = length(Tsize)
 
-    delt = Int(floor(d/2))
+    delt = delta(d)
     rmin = LinearAlgebra.rank(catMat(T, delt));
     println(@sprintf "Rank of catalecticant: %d" rmin)
     println("Using the rank of catalecticant as initial guess.")
@@ -135,10 +135,6 @@ function hankel(T; tol=1e-10)
 end;
 
 function hankel_r(T, n, d, r; tol=1e-10)
-    Tsize = size(T)
-    n = Tsize[1]
-    d = length(Tsize)
-
     if iseven(d)
         if n > 3
             if r > binomial(Int(n-1+d/2), n-1) - n 
@@ -158,6 +154,9 @@ function hankel_r(T, n, d, r; tol=1e-10)
 
     Thank = hankMat(T)
     H0 = Thank[1:r, 1:r];
+    if r <= binomial(n-1+delta(d), n-1)
+        H0 = convert(Matrix{eltype(T)}, H0)
+    end
     H0_inv = inv(H0)
 
     D = Dict()
@@ -184,8 +183,8 @@ function hankel_r(T, n, d, r; tol=1e-10)
         push!(Ms, H*H0_inv)
     end;
 
-    delt = Int(floor((d-1)/2));
-    if r > binomial(n-1+delt, n-1)
+    gam = gamma(d);
+    if r > binomial(n-1+gam, n-1)
         println("High rank tensor decomposition -- must solve quadratic system.")
         eqMats = []
         for i=1:n-1

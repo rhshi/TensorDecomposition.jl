@@ -1,9 +1,9 @@
-export makeRankedTensor, randomRankedTensor, randomTensor, contract, catMat, hankMat
+export makeRankedTensor, randomRankedTensor, randomTensor, contract, hankMat, catMat
 
 function makeRankedTensor(L::Vector, A::Array, d::Int)
     n, _ = size(A)
     A_ = kronMat(A, d)
-    return reshape(sum(A_ .* L', dims=2), tuple(repeat([n], d)...))
+    return reshape(sum(transpose(L) .* A_, dims=2), tuple(repeat([n], d)...))
 end;
 
 function randomTensor(n::Int, d::Int; real::Bool=false)

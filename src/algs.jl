@@ -1,4 +1,4 @@
-export jennrich, jennrich2, catalecticant, hankel_r, hankel
+export jennrich, jennrich2, catalecticant, hankel_r, hankel, hankel_system
 
 function jennrich(T::Array; tol=1e-10)
     Tsize = size(T)
@@ -194,7 +194,7 @@ function hankel_r(T, n, d, r; tol=1e-10)
         end
         F = System(mapreduce(M -> vec(M), vcat, eqMats))
         result = solve(F)
-        sols = solutions(result)
+        sols = solutions(result, only_nonsingular=false)
         println(sols)
         if length(sols) == 0
             error("There are no solutions h such that the multiplication matrices commute.  The input r is likely not the correct rank.")
@@ -235,3 +235,51 @@ function hankel_r(T, n, d, r; tol=1e-10)
     
     return Ahat, Lhat, F
 end;
+
+function hankel_system(T, r)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+
+    Thank = hankMat(T)
+    H0 = Thank[1:r, 1:r];
+    if r <= binomial(n-1+delta(d), n-1)
+        H0 = convert(Matrix{eltype(T)}, H0)
+    end
+    H0_inv = inv(H0)
+
+    D = Dict()
+    first_r = []
+    for (i, ind) in enumerate(with_replacement_combinations(0:n-1, d))
+        if i <= r
+            push!(first_r, ind)
+        end
+        D[Tuple(x for x in ind)] = i
+    end
+
+    Hs = []
+    for i=1:n-1
+        hankInds = []
+        multMap = map(x -> multMon(x, i), first_r)
+        for ind in multMap
+            push!(hankInds, D[Tuple(x for x in ind)])
+        end
+        push!(Hs, Thank[1:r, hankInds])
+    end
+
+    Ms = []
+    for H in Hs
+        push!(Ms, H*H0_inv)
+    end;
+
+    eqMats = []
+    for i=1:n-1
+        for j=i+1:n-1
+            push!(eqMats, Ms[i]*Ms[j]-Ms[j]*Ms[i])
+        end
+    end
+
+    F = System(mapreduce(M -> vec(M), vcat, eqMats));
+    return F
+
+end

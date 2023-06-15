@@ -1,4 +1,4 @@
-export jennrich, jennrich2, catalecticant, hankel_r, hankel, hankel_system
+export jennrich, jennrich2, catalecticant, hankel_r, hankel, hankel_system, hankel_system_fast
 
 function jennrich(T::Array; tol=1e-10)
     Tsize = size(T)
@@ -137,11 +137,11 @@ end;
 function hankel_r(T, n, d, r; tol=1e-10)
     if iseven(d)
         if n > 3
-            if r > binomial(Int(n-1+d/2), n-1) - n 
+            if r > binomial(Int(n-1+d/2), n-1) - n -1
                 println("Outside the regime of the Catalecticant algorithm.")
             end
         else
-            if r > binomial(Int(n-1+d/2), n-1) - n + 1
+            if r > binomial(Int(n-1+d/2), n-1) - n
                 println("Outside the regime of the Catalecticant algorithm.")
             end
         end
@@ -283,3 +283,81 @@ function hankel_system(T, r)
     return F
 
 end
+
+function hankel_system_fast(T, r; tol=1e-10, round_zero=false)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+    
+    Thank = hankMat2(T);
+    H0 = Thank[1:r, 1:r];
+    if r <= binomial(n-1+delta(d), n-1)
+        H0 = Symbolics.value.(H0)
+    end
+    H0_inv = inv(H0);
+    
+    alphas = sort(collect(alpha_iterator(Val(n), d)), lt=monomialOrder)
+    D = Dict()
+    first_r = []
+    for (i, ind) in enumerate(alphas)
+        if i <= r
+            push!(first_r, ind)
+        end
+        D[ind] = i
+    end
+    
+    Hs = []
+    for i=2:n
+        hankInds = []
+        multMap = map(x -> multMon2(x, i), first_r)
+        for ind in multMap
+            push!(hankInds, D[ind])
+        end
+        push!(Hs, Thank[1:r, hankInds])
+    end
+    
+    Ms = []
+    for H in Hs
+        push!(Ms, H*H0_inv)
+    end;
+    
+    if round_zero
+        for M in Ms
+            for i=1:r
+                for j=1:r
+                    boolOrNum = abs(M[i, j]) < tol
+                    if boolOrNum isa Bool
+                        if boolOrNum
+                            M[i, j] = 0
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    eqMats = []
+    for i=1:n-1
+        for j=i+1:n-1
+            push!(eqMats, Ms[i]*Ms[j]-Ms[j]*Ms[i])
+        end
+    end
+    
+    linearEqs = []
+    for eqMat in eqMats
+        append!(linearEqs, Symbolics.expand.(eqMat[Symbolics.degree.(eqMat) .== 1]))
+    end
+
+    vars = unique(reduce(vcat, Symbolics.get_variables.(linearEqs)));
+    
+    A = []
+    b = []
+    for eq in linearEqs
+        push!(A, [Symbolics.coeff(eq, h_) for h_ in vars])
+        push!(b, Symbolics.coeff(eq))
+    end
+    A = reduce(hcat,A)';
+    
+    return vars, Hs, Ms, eqMats, linearEqs, A, b
+    
+end;

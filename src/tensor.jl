@@ -101,3 +101,46 @@ function hankMat(T)
     return Thank
 
 end;
+
+function hankMat2(T)
+    Tsize = size(T)
+    n = Tsize[1]
+    d = length(Tsize)
+
+    Fdim = binomial(n-1+d, d)
+    Fliftdim = binomial(n-1+2*d, n-1)
+    
+    F = zeros(eltype(T), Fdim)
+    alphas = sort(collect(alpha_iterator(Val(n), d)), lt=monomialOrder)
+    for (i, ind) in enumerate(convertIndices.(alphas))
+        F[i] = T[(ind .+ 1)...]
+    end
+
+    Flift = Array{Num}(undef, Fliftdim)
+    for i=1:length(F)
+        Flift[i] = F[i]
+    end
+    
+    @variables h[Fdim+1:Fliftdim]
+    for i=1:Fliftdim-Fdim
+        Flift[Fdim+i] = h[i]
+    end
+    
+    alphas2 = sort(collect(alpha_iterator(Val(n), 2*d)), lt=monomialOrder)
+    D = Dict()
+    for (i, ind) in enumerate(alphas2)
+        D[ind] = i
+    end
+    
+    Thank = Array{Num}(undef, Fdim, Fdim)
+    for (i, row_ind) in enumerate(alphas)
+        for (j, col_ind) in enumerate(alphas)
+            row_mon = [x for x in row_ind]
+            col_mon = [x for x in col_ind]
+            ind = Tuple(x for x in row_mon+col_mon)
+            Thank[i, j] = Flift[D[ind]]
+        end
+    end
+    return Thank
+    
+end;

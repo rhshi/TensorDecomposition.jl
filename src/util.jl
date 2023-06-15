@@ -88,6 +88,48 @@ function multMon(x, j)
     return sort(reverse(c))
 end;
 
+function alpha_iterator(::Val{N}, s, t=()) where {N}
+    N <= 1 && return ((s, t...),) # Iterator over a single Tuple
+    Iterators.flatten(alpha_iterator(Val(N-1), s-i, (i, t...)) for i in 0:s)
+end
+
+function monomialOrder(a, b)
+    if a[1] > b[1]
+        return true
+    elseif a[1] < b[1]
+        return false
+    else 
+        if maximum(a[2:end]) < maximum(b[2:end])
+            return true
+        elseif maximum(a[2:end]) > maximum(b[2:end])
+            return false
+        else
+            return !isless(a[2:end], b[2:end])
+        end 
+    end
+end
+
+function convertIndices(x)
+    d = sum(x)
+    y = zeros(Int, d)
+    c = 1
+    for i=1:length(x)
+        pow = x[i]
+        y[c:c+pow-1] .= i
+        c += pow
+    end 
+    return y .- 1
+end
+
+
+function multMon2(x, i)
+    y = [j for j in x]
+    
+    y[1] -= 1
+    y[i] += 1
+    return Tuple(j for j in y)
+end
+
 monomials(x, n) = collect((prod(y) for y in with_replacement_combinations(x, n)));
 delta(d) = Int(floor(d/2))
 gamma(d) = Int(floor((d-1)/2))

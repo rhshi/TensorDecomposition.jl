@@ -1,6 +1,6 @@
 module TensorDecomposition
 
-using Random, LinearAlgebra, TensorToolbox, Combinatorics, TensorOperations, HomotopyContinuation, InvertedIndices, Printf
+using Random, LinearAlgebra, TensorToolbox, Combinatorics, TensorOperations, HomotopyContinuation, InvertedIndices, Printf, Symbolics
 
 include("tensor.jl")
 include("algs.jl")

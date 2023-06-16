@@ -1,4 +1,4 @@
-export makeRankedTensor, randomRankedTensor, randomTensor, contract, hankMat, catMat
+export makeRankedTensor, randomRankedTensor, randomTensor, contract, hankMat, catMat, hankMat2
 
 function makeRankedTensor(L::Vector, A::Array, d::Int)
     n, _ = size(A)
@@ -36,7 +36,8 @@ function randomRankedTensor(n, d, r; real=false)
         A_[:, i] ./= A1[i]
         L_[i] = A1[i]^d
     end;
-    return makeRankedTensor(L, A, d), A_, L_
+    signs = rand([-1, 1], r)
+    return makeRankedTensor(L .* signs, A, d), A_, L_ .* signs
 end;
 
 function contract(T::Array, V::Array)

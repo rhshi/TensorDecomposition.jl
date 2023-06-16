@@ -295,7 +295,7 @@ function hankel_system_fast(T, r; tol=1e-10, round_zero=false)
         H0 = Symbolics.value.(H0)
     end
     H0_inv = inv(H0);
-    
+
     alphas = sort(collect(alpha_iterator(Val(n), d)), lt=monomialOrder)
     D = Dict()
     first_r = []
@@ -305,7 +305,7 @@ function hankel_system_fast(T, r; tol=1e-10, round_zero=false)
         end
         D[ind] = i
     end
-    
+
     Hs = []
     for i=2:n
         hankInds = []
@@ -315,7 +315,7 @@ function hankel_system_fast(T, r; tol=1e-10, round_zero=false)
         end
         push!(Hs, Thank[1:r, hankInds])
     end
-    
+
     Ms = []
     for H in Hs
         push!(Ms, H*H0_inv)
@@ -342,21 +342,55 @@ function hankel_system_fast(T, r; tol=1e-10, round_zero=false)
             push!(eqMats, Ms[i]*Ms[j]-Ms[j]*Ms[i])
         end
     end
-    
-    linearEqs = []
-    for eqMat in eqMats
-        append!(linearEqs, Symbolics.expand.(eqMat[Symbolics.degree.(eqMat) .== 1]))
-    end
 
-    vars = unique(reduce(vcat, Symbolics.get_variables.(linearEqs)));
-    
-    A = []
-    b = []
-    for eq in linearEqs
-        push!(A, [Symbolics.coeff(eq, h_) for h_ in vars])
-        push!(b, Symbolics.coeff(eq))
+    if eltype(T) == ComplexF64
+        realLinearEqs = []
+        imagLinearEqs = []
+        for eqMat in eqMats
+            realEqMat = real(eqMat)
+            imagEqMat = imag(eqMat)
+            append!(realLinearEqs, Symbolics.expand.(realEqMat[Symbolics.degree.(realEqMat) .== 1]))
+            append!(imagLinearEqs, Symbolics.expand.(imagEqMat[Symbolics.degree.(imagEqMat) .== 1]))
+        end
+
+        vars = unique(reduce(vcat, vcat(Symbolics.get_variables.(realLinearEqs), Symbolics.get_variables.(imagLinearEqs))));
+
+        Areal = []
+        breal = []
+        for eq in realLinearEqs
+            push!(Areal, [Symbolics.coeff(eq, h_) for h_ in vcat(real(vars), imag(vars))])
+            push!(breal, -Symbolics.coeff(eq))
+        end
+        Areal = reduce(hcat,Areal)';
+
+        Aimag = []
+        bimag = []
+        for eq in imagLinearEqs
+            push!(Aimag, [Symbolics.coeff(eq, h_) for h_ in vcat(real(vars), imag(vars))])
+            push!(bimag, -Symbolics.coeff(eq))
+        end
+        Aimag = reduce(hcat,Aimag)';
+
+        A = vcat(Areal, Aimag)
+        b = vcat(breal, bimag);
+        linearEqs = vcat(realLinearEqs, imagLinearEqs)
+
+    else
+        linearEqs = []
+        for eqMat in eqMats
+            append!(linearEqs, Symbolics.expand.(eqMat[Symbolics.degree.(eqMat) .== 1]))
+        end
+
+        vars = unique(reduce(vcat, Symbolics.get_variables.(linearEqs)));
+
+        A = []
+        b = []
+        for eq in linearEqs
+            push!(A, [Symbolics.coeff(eq, h_) for h_ in vars])
+            push!(b, Symbolics.coeff(eq))
+        end
+        A = reduce(hcat,A)';
     end
-    A = reduce(hcat,A)';
     
     return vars, Hs, Ms, eqMats, linearEqs, A, b
     

@@ -24,8 +24,6 @@ function linearSystemA(T, H0, basis_inds, basisD, D, vars, eqs1, eqs2; type=Comp
         push!(b_js, b_j2)
     end
 
-    
-
     bjDict = Dict()
     if eltype(T) <: Number 
         F = lu(H0)
@@ -39,8 +37,8 @@ function linearSystemA(T, H0, basis_inds, basisD, D, vars, eqs1, eqs2; type=Comp
         p = [getindex(p_, k) for k in 1:length(basis_inds)]
         for b_j in b_js 
             b_ = Tcat[basis_inds, D[b_j]] 
-            y_ = solve(L, b_[p], side=:right)
-            bjDict[b_j] = solve(U, y_, side=:right)[(end-length(alphas)+1):end]
+            y_ = Nemo.solve(L, b_[p], side=:right)
+            bjDict[b_j] = Nemo.solve(U, y_, side=:right)[(end-length(alphas)+1):end]
         end
     end
 

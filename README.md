@@ -12,6 +12,7 @@ All examples are included in the folder `examples`:
 - `d_4.ipynb`: An example for $d=4$.  Includes an example of efficient decomposition for $n=10, r=51$ where the matrix $\mathbf{A}$ is generically full column rank.  Also includes an example where a decomposition has three colinear points so the decomposition is not unique; decompositions are given via a parameterization of the space of decompositions.
 - `d_6.ipynb`: An example for $d=6$.  Includes an example of efficient decomposition for $n=5, r=50$ where the matrix $\mathbf{A}$ is generically full column rank.  Also includes an example of a tensor where a set $B$ cannot be chosen to be the first $r$ monomials yet the tensor is still efficiently decomposable with unique decomposition.
 - `monomial.ipynb`: An example of monomial decomposition, giving multiple decompositions via choosing different sets of parameters.
+- `binary.ipynb`: An example of binary tensor decomposition, specifically Example 3.20 from the paper.
 
 ## Packages
 Julia is required with the following packages:

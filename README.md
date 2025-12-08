@@ -1,8 +1,8 @@
 # TensorDecomposition
 
 [![Build Status](https://github.com/rhshi/TensorDecomposition.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/rhshi/TensorDecomposition.jl/actions/workflows/CI.yml?query=branch%3Amain)
-
-This repository is Julia code for the paper "Efficient Tensor Decomposition via Moment Matrix Extension."  This code includes an implementation of efficient moment matrix extension via linear algebraic operations, requiring no symbolic algebra packages.  Also included is an implementation of monomial decomposition via a paramaterization of the space of decompositions.
+ 
+This repository is Julia code for the paper: Bobby Shi, Julia Lindberg, Joe Kileel, "Efficient Tensor Decomposition via Moment Matrix Extension", arXiv:2506.22564 (2025).  This code includes an implementation of efficient moment matrix extension via linear algebraic operations, requiring no symbolic algebra packages.  Also included is an implementation of monomial decomposition via a paramaterization of the space of decompositions.
 
 ## Proofs
 As described in the paper, included are computer assisted proofs for efficient formats in `proofs/4-17.jld2` for $n=4, \dots, 17$; for each $n$ we give a prime $p$ and an explicit specialization of points.  We use the computer algebra package Nemo to perform computations over finite fields; some examples are given in `proofs/example.ipynb`, giving specializations such that $\mathbf{A}$ is full column rank over finite fields.
